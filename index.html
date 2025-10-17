@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>StoneTap — Jeu</title>
   <link rel="stylesheet" href="style.css">
   <!-- Telegram Web Apps SDK -->
@@ -10,27 +10,36 @@
 </head>
 <body>
   <div id="app">
-    <header>
-      <h1>StoneTap</h1>
-      <div class="hud">
-        <div>Niveau: <span id="level">1</span></div>
-        <div>Pièces: <span id="coins">0</span></div>
-        <div>Temps: <span id="time">60</span>s</div>
-        <div>Score: <span id="score">0</span></div>
+    <header class="header">
+      <div class="brand">
+        <h1>StoneTap</h1>
+        <p class="subtitle">Survis 60s — Tape les pierres</p>
+      </div>
+      <div class="hud" aria-hidden="true">
+        <div class="hud-item">Niv: <span id="level">1</span></div>
+        <div class="hud-item">Pièces: <span id="coins">0</span></div>
+        <div class="hud-item">Temps: <span id="time">60</span>s</div>
       </div>
     </header>
 
-    <main>
-      <canvas id="gameCanvas" width="720" height="1080"></canvas>
-      <div class="controls">
-        <button id="btnStart">Démarrer (coûte 1 pièce)</button>
-        <button id="btnGetCoins">Obtenir 10 pièces (pub)</button>
-        <button id="btnReset">Réinitialiser progression</button>
+    <main class="main">
+      <div class="canvas-wrap" role="application" aria-label="Zone de jeu">
+        <canvas id="gameCanvas" width="720" height="1080"></canvas>
       </div>
-      <p class="tip">Tape sur les pierres pour les détruire avant qu'elles n'atteignent le sol. Chaque session dure 60s. La vitesse augmente toutes les 5s.</p>
+
+      <div class="controls">
+        <button id="btnStart" class="btn btn-blue" aria-label="Démarrer le jeu">Démarrer (coûte 1 pièce)</button>
+        <button id="btnGetCoins" class="btn btn-orange" aria-label="Obtenir 10 pièces via publicité">Obtenir 10 pièces</button>
+        <button id="btnReset" class="btn btn-ghost" aria-label="Réinitialiser progression">Réinitialiser</button>
+      </div>
+
+      <div class="meta-row">
+        <div class="score">Score: <strong id="score">0</strong></div>
+        <p class="tip">Tape les pierres avant qu'elles n'atteignent le sol. La vitesse augmente toutes les 5s.</p>
+      </div>
     </main>
 
-    <footer>
+    <footer class="footer">
       <small>Déployé sur GitHub Pages • Intégration Telegram WebApp incluse</small>
     </footer>
   </div>
@@ -38,9 +47,40 @@
   <script>
     // lien de pub fourni
     const AD_URL = "https://www.effectivegatecpm.com/ay3mmpgv?key=569c9426276b69920ca168dbf4b618d5";
-    // Remplace par l'URL de ton site GitHub Pages après déploiement
+    // utile pour construire des liens depuis le bot si besoin
     const BASE_URL = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
   </script>
-  <script src="game.js"></script>
+
+  <!-- game logic (inchangé) -->
+  <script src="game.js" defer></script>
+
+  <!-- Responsive canvas adapter : ajuste la résolution interne selon la largeur du container -->
+  <script>
+    (function(){
+      const canvas = document.getElementById('gameCanvas');
+      const wrap = document.querySelector('.canvas-wrap');
+
+      function resizeCanvasToFit() {
+        // Aspect ratio used: 720x1080 (2:3)
+        const w = Math.min(wrap.clientWidth, window.innerWidth - 24); // small padding
+        const h = Math.round(w * (1080 / 720));
+        // visual size (CSS)
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        // internal resolution for crispness (retina)
+        const ratio = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.floor(w * ratio);
+        canvas.height = Math.floor(h * ratio);
+      }
+
+      // call on load and resize
+      window.addEventListener('load', resizeCanvasToFit);
+      window.addEventListener('resize', resizeCanvasToFit);
+      window.addEventListener('orientationchange', () => setTimeout(resizeCanvasToFit, 200));
+
+      // also ensure immediate sizing if script loads after CSS
+      resizeCanvasToFit();
+    })();
+  </script>
 </body>
 </html>
